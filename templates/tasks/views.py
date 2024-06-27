@@ -1,9 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from dashboard.models import Task
 from .forms import TaskForm
 from django.contrib.auth.models import User
 from django.db.models import Q
+import json
 
 
 # @login_required
@@ -25,10 +28,19 @@ def task_list(request):
     return render(request, 'tasks/index.html', context)
 
 
-@login_required
+# @login_required
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    return render(request, 'tasks/task_detail.html', {'task': task})
+    print(task)
+    data = {
+        'title': task.title,
+        'description': task.description,
+        'status': task.status,
+        'priority': task.priority,
+        'due_date': task.due_date.isoformat(),
+        'assigned_to': task.assigned_to.username,
+    }
+    return JsonResponse(data)
 
 
 # @login_required
@@ -64,3 +76,25 @@ def delete_task(request, pk):
         task.delete()
         return redirect('tasks')
     return render(request, 'tasks/task_confirm_delete.html', {'task': task})
+
+
+# @require_http_methods(['PATCH'])
+def move_task(request, pk):
+    task = get_object_or_404(Task, id=pk)
+    
+    if request.method == 'POST':
+        updated_status_column = request.POST.get('new_status')
+
+        print(updated_status_column)
+        if updated_status_column == 'overdueColumn':
+            task.status = 'Overdue'
+        elif updated_status_column == 'completedColumn':
+            task.status = 'Completed'
+        elif updated_status_column == 'inProgressColumn':
+            task.status = 'In Progress'
+        else:
+            pass
+
+        task.save()
+
+    return JsonResponse({'message': 'Task status updated successfully'})

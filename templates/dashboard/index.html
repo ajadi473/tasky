@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tasky Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/1.0.6/heroicons.min.css" integrity="sha512-wyrIS7Jk/C9DlzhQ8UUPk7axR8V2D/zi35Eci6Eu71ngTMiMsqLQqDRx/mshfF/9Kg9pVSR9WYh+zw0YP29hFw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 </head>
 <body class="bg-blue-100">
     <div class="flex flex-col md:flex-row min-h-screen">
@@ -19,43 +23,645 @@
             <!-- Header -->
             <header class="flex items-center justify-between mb-6">
                 <div class="flex items-center">
-                    <input type="text" placeholder="Search tasks" class="w-80 p-2 border rounded-md">
+                    <input type="text" id="searchTasks"
+                    placeholder="Search tasks" class="w-80 p-2 border rounded-md">
                 </div>
                 <div class="flex items-center">
-                    <button class="ml-6 p-2 bg-blue-500 text-white rounded-md">+ Add task</button>
+                    <button id="addTaskBtn" class="ml-6 p-2 bg-blue-500 text-white rounded-md">+ Add task</button>
                 </div>
             </header>
 
             <!-- Task Boards -->
             <div class="grid grid-cols-3 gap-6">
+
                 <!-- In Progress Column -->
                 <div>
-                    <h2 class="text-lg font-semibold mb-4">In Progress</h2>
+                    <h2 class="text-lg font-semibold mb-4">In Progress
+                        <span class="small"> ({{ in_progress_counter }}) </span> 
+                    </h2>
                     <!-- Task Card -->
-                    <div class="bg-white p-4 rounded-lg shadow">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs bg-red-100 text-red-500 py-1 px-2 rounded">High</span>
-                            <span class="text-xs bg-purple-100 text-purple-500 py-1 px-2 rounded">6:00 PM</span>
-                            <span class="text-xs bg-blue-100 text-blue-500 py-1 px-2 rounded">UX Design</span>
+                    {% for task in in_progress_tasks %}
+
+                        <div
+                        id="inProgressColumn"
+                         class="bg-white p-4 my-6 rounded-lg shadow task-card status-column cursor-pointer"
+                         draggable="true" data-task-id="{{ task.id }}">
+                            <div class="bg-gray flex justify-between items-center mb-2">
+                                <span class="text-xs bg-red-100 text-red-500 py-1 px-2 rounded">{{ task.priority}}</span>
+                                <span class="text-xs bg-purple-100 text-purple-500 py-1 px-2 rounded">
+                                    {{ task.due_date }}
+                                </span>
+                                <span class="text-xs bg-blue-100 text-blue-500 py-1 px-2 rounded"> {{ task.category }} </span>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-medium mb-2">{{ task.title }}</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    {{ task.description }}
+                                </p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex">
+                                        <img src="{% static 'img/avatar-1.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full">
+                                        <img src="{% static 'img/avatar-2.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                                        <img src="{% static 'img/avatar-3.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                                    </div>
+                                    <div class="flex">
+                                        <svg data-toggle="modal" data-target="#viewTaskModal" data-id="{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="view-task-btn cursor-pointer w-4 h-4 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm1 0a4 4 0 11-8 0 4 4 0 018 0zm6-1.95C20.467 7.3 17.398 5 12 5S3.533 7.3 2 10.05a2 2 0 000 3.9C3.533 16.7 6.602 19 12 19s8.467-2.3 10-5.05a2 2 0 000-3.9z"/>
+                                        </svg>
+                                        <!-- update button -->
+                                        <svg  data-toggle="modal" data-target="#updateTaskModal{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="cursor-pointer w-4 h-4 mx-2 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 113.536 3.536L7 20.536 3 21l.464-4L15.232 5.232z"/>
+                                        </svg>
+                                        <svg data-toggle="modal" data-target="#deleteTaskModal{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="cursor-pointer w-4 h-4 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L6 7M6 7h12m-6 0V5m4 0H8m10 2v11c0 1.104-.896 2-2 2H8c-1.104 0-2-.896-2-2V7m10 0h-4m4 0V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2z"/>
+                                        </svg>
+
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="text-md font-medium mb-2">User Flow</h3>
-                        <p class="text-sm text-gray-600 mb-4">Designing a dashboard involves creating a visual interface that...</p>
-                        <div class="flex items-center justify-between">
-                            <div class="flex">
-                                <img src="{% static 'img/avatar-1.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full">
-                                <img src="{% static 'img/avatar-2.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
-                                <img src="{% static 'img/avatar-3.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+
+                        <!-- Update Task Modal -->
+                        <div class="modal fade" id="updateTaskModal{{ task.id }}"
+                            tabindex="-1" role="dialog"
+                            aria-labelledby="updateTaskModalLabel{{ task.id }}"
+                            aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Update Task Form -->
+                                        <form method="POST" action="{% url 'update_task' task.id %}" >
+                                            {% csrf_token %}
+                                            <!-- Form fields for updating task -->
+                                            <label for="updateTaskTitle">Title:</label>
+                                            <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskDescription">Description:</label>
+                                            <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
+
+                                            <label for="updateTaskStatus">Status:</label>
+                                            <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
+                                                <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
+                                                <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
+                                                <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
+                                            </select>
+
+                                            <label for="updateTaskPriority">Priority:</label>
+                                            <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
+                                                <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
+                                                <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
+                                                <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
+                                            </select>
+
+                                            <label for="updateTaskDueDate">Due Date:</label>
+                                            <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskCategory">Category:</label>
+                                            <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskAssignedTo">Assigned To:</label>
+                                            <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
+                                                {% for user in users %}
+                                                    <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                            <button type="submit" class="btn btn-primary">Update Task</button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex">
-                                <button class="p-1 text-gray-500 hover:text-gray-700"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="..."/></svg></button>
-                                <button class="p-1 text-gray-500 hover:text-gray-700"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="..."/></svg></button>
+                        </div>
+
+                        <!-- Delete Task Modal -->
+                        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete task "{{ task.title }}"?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <!-- Delete Task Form -->
+                                        <form method="POST"  action="{% url 'delete_task' task.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- View Task Modal -->
+                        <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Task information will be populated here -->
+                                        <p><strong>Title:</strong> <span id="taskTitle"></span></p>
+                                        <p><strong>Description:</strong> <span id="taskDescription"></span></p>
+                                        <p><strong>Status:</strong> <span id="taskStatus"></span></p>
+                                        <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
+                                        <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
+                                        <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+
+                <!-- Completed Column -->
+                <div>
+                    <h2 class="text-lg font-semibold mb-4">
+                        Completed
+                        <span class="small"> ({{ completed_counter }}) </span>
+                    </h2>
+                    <!-- Task Card -->
+                    {% for task in completed_tasks %}
+
+                        <div class="task-card status-column cursor-pointer bg-white p-4 my-6 rounded-lg shadow"
+                            draggable="true" data-task-id="{{ task.id }}"
+                            id="completedColumn">
+                            <div class="bg-gray flex justify-between items-center mb-2">
+                                <span class="text-xs bg-red-100 text-red-500 py-1 px-2 rounded">{{ task.priority}}</span>
+                                <span class="text-xs bg-purple-100 text-purple-500 py-1 px-2 rounded">
+                                    {{ task.due_date }}
+                                </span>
+                                <span class="text-xs bg-blue-100 text-blue-500 py-1 px-2 rounded"> {{ task.category }} </span>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-medium mb-2">{{ task.title }}</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    {{ task.description }}
+                                </p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex">
+                                        <img src="{% static 'img/avatar-1.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full">
+                                        <img src="{% static 'img/avatar-2.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                                        <img src="{% static 'img/avatar-3.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                                    </div>
+                                    <div class="flex">
+                                        <svg data-toggle="modal" data-target="#viewTaskModal" data-id="{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="view-task-btn cursor-pointer w-4 h-4 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm1 0a4 4 0 11-8 0 4 4 0 018 0zm6-1.95C20.467 7.3 17.398 5 12 5S3.533 7.3 2 10.05a2 2 0 000 3.9C3.533 16.7 6.602 19 12 19s8.467-2.3 10-5.05a2 2 0 000-3.9z"/>
+                                        </svg>
+                                        <!-- update button -->
+                                        <svg  data-toggle="modal" data-target="#updateTaskModal{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="cursor-pointer w-4 h-4 mx-2 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 113.536 3.536L7 20.536 3 21l.464-4L15.232 5.232z"/>
+                                        </svg>
+                                        <svg data-toggle="modal" data-target="#deleteTaskModal{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="cursor-pointer w-4 h-4 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L6 7M6 7h12m-6 0V5m4 0H8m10 2v11c0 1.104-.896 2-2 2H8c-1.104 0-2-.896-2-2V7m10 0h-4m4 0V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2z"/>
+                                        </svg>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Update Task Modal -->
+                        <div class="modal fade" id="updateTaskModal{{ task.id }}"
+                            tabindex="-1" role="dialog"
+                            aria-labelledby="updateTaskModalLabel{{ task.id }}"
+                            aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Update Task Form -->
+                                        <form method="POST" action="{% url 'update_task' task.id %}" >
+                                            {% csrf_token %}
+                                            <!-- Form fields for updating task -->
+                                            <label for="updateTaskTitle">Title:</label>
+                                            <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskDescription">Description:</label>
+                                            <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
+
+                                            <label for="updateTaskStatus">Status:</label>
+                                            <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
+                                                <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
+                                                <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
+                                                <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
+                                            </select>
+
+                                            <label for="updateTaskPriority">Priority:</label>
+                                            <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
+                                                <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
+                                                <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
+                                                <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
+                                            </select>
+
+                                            <label for="updateTaskDueDate">Due Date:</label>
+                                            <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskCategory">Category:</label>
+                                            <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskAssignedTo">Assigned To:</label>
+                                            <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
+                                                {% for user in users %}
+                                                    <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                            <button type="submit" class="btn btn-primary">Update Task</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delete Task Modal -->
+                        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete task "{{ task.title }}"?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <!-- Delete Task Form -->
+                                        <form method="POST"  action="{% url 'delete_task' task.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View Task Modal -->
+                        <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Task information will be populated here -->
+                                        <p><strong>Title:</strong> <span id="taskTitle"></span></p>
+                                        <p><strong>Description:</strong> <span id="taskDescription"></span></p>
+                                        <p><strong>Status:</strong> <span id="taskStatus"></span></p>
+                                        <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
+                                        <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
+                                        <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+
+                <!-- Overdue Column -->
+                <div>
+                    <h2 class="text-lg font-semibold mb-4">
+                        Over-due
+                        <span class="small"> ({{ overdue_counter }}) </span>
+                    </h2>
+                    <!-- Task Card -->
+                    {% for task in overdue_tasks %}
+
+                        <div class="task-card status-column cursor-pointer bg-white p-4 my-6 rounded-lg shadow"
+                            draggable="true" data-task-id="{{ task.id }}"
+                            id="overdueColumn">
+                            <div class="bg-gray flex justify-between items-center mb-2">
+                                <span class="text-xs bg-red-100 text-red-500 py-1 px-2 rounded">{{ task.priority}}</span>
+                                <span class="text-xs bg-purple-100 text-purple-500 py-1 px-2 rounded">
+                                    {{ task.due_date }}
+                                </span>
+                                <span class="text-xs bg-blue-100 text-blue-500 py-1 px-2 rounded"> {{ task.category }} </span>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-medium mb-2">{{ task.title }}</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    {{ task.description }}
+                                </p>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex">
+                                        <img src="{% static 'img/avatar-1.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full">
+                                        <img src="{% static 'img/avatar-2.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                                        <img src="{% static 'img/avatar-3.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                                    </div>
+                                    <div class="flex">
+                                        <svg data-toggle="modal" data-target="#viewTaskModal" data-id="{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="view-task-btn cursor-pointer w-4 h-4 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm1 0a4 4 0 11-8 0 4 4 0 018 0zm6-1.95C20.467 7.3 17.398 5 12 5S3.533 7.3 2 10.05a2 2 0 000 3.9C3.533 16.7 6.602 19 12 19s8.467-2.3 10-5.05a2 2 0 000-3.9z"/>
+                                        </svg>
+                                        <!-- update button -->
+                                        <svg  data-toggle="modal" data-target="#updateTaskModal{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="cursor-pointer w-4 h-4 mx-2 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232a2.828 2.828 0 113.536 3.536L7 20.536 3 21l.464-4L15.232 5.232z"/>
+                                        </svg>
+                                        <svg data-toggle="modal" data-target="#deleteTaskModal{{ task.id }}"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="cursor-pointer w-4 h-4 text-gray-500 hover:text-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L6 7M6 7h12m-6 0V5m4 0H8m10 2v11c0 1.104-.896 2-2 2H8c-1.104 0-2-.896-2-2V7m10 0h-4m4 0V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2z"/>
+                                        </svg>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Update  Modal -->
+                        <div class="modal fade" id="updateTaskModal{{ task.id }}"
+                            tabindex="-1" role="dialog"
+                            aria-labelledby="updateTaskModalLabel{{ task.id }}"
+                            aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Update Task Form -->
+                                        <form method="POST" action="{% url 'update_task' task.id %}" >
+                                            {% csrf_token %}
+                                            <!-- Form fields for updating task -->
+                                            <label for="updateTaskTitle">Title:</label>
+                                            <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskDescription">Description:</label>
+                                            <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
+
+                                            <label for="updateTaskStatus">Status:</label>
+                                            <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
+                                                <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
+                                                <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
+                                                <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
+                                            </select>
+
+                                            <label for="updateTaskPriority">Priority:</label>
+                                            <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
+                                                <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
+                                                <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
+                                                <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
+                                            </select>
+
+                                            <label for="updateTaskDueDate">Due Date:</label>
+                                            <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskCategory">Category:</label>
+                                            <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
+
+                                            <label for="updateTaskAssignedTo">Assigned To:</label>
+                                            <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
+                                                {% for user in users %}
+                                                    <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                            <button type="submit" class="btn btn-primary">Update Task</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delete Task Modal -->
+                        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete task "{{ task.title }}"?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <!-- Delete Task Form -->
+                                        <form method="POST"  action="{% url 'delete_task' task.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View Task Modal -->
+                        <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Task information will be populated here -->
+                                        <p><strong>Title:</strong> <span id="taskTitle"></span></p>
+                                        <p><strong>Description:</strong> <span id="taskDescription"></span></p>
+                                        <p><strong>Status:</strong> <span id="taskStatus"></span></p>
+                                        <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
+                                        <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
+                                        <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <!-- Add Task Modal -->
+            <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addTaskModalLabel">Add Task</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addTaskForm" method="POST" action="{% url 'create_task' %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="taskNameInput">Task Name</label>
+                                    <input type="text" class="form-control" id="taskNameInput" name="title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskDescriptionInput">Description</label>
+                                    <textarea class="form-control" id="taskDescriptionInput" name="description" rows="3" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskStatusInput">Status</label>
+                                    <select class="form-control" id="taskStatusInput" name="status" required>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Overdue">Overdue</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskPriorityInput">Priority</label>
+                                    <select class="form-control" id="taskPriorityInput" name="priority" required>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskDueDateInput">Due Date</label>
+                                    <input type="datetime-local" class="form-control" id="taskDueDateInput" name="due_date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskCategoryInput">Category</label>
+                                    <input type="text" class="form-control" id="taskCategoryInput" name="category" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskAssignedToInput">Assigned To</label>
+                                    <select class="form-control" id="taskAssignedToInput" name="assigned_to" required>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}">{{ user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Add Task</button>
+                            </form>
                         </div>
                     </div>
                 </div>
-                <!-- Repeat similar structure for other columns and task cards -->
             </div>
+
         </main>
     </div>
+
+        <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+
+            $('#addTaskBtn').on('click', function() {
+                $('#addTaskModal').modal('show');
+            });
+
+            $('.task-card').on('dragstart', function(event) {
+                event.originalEvent.dataTransfer.setData('text/plain', $(this).data('task-id'));
+            });
+
+            // Enable droppability for status columns
+            $('.status-column').on('dragover', function(event) {
+                event.preventDefault();
+            });
+
+            $('.status-column').on('drop', function(event) {
+                var taskId = event.originalEvent.dataTransfer.getData('text/plain');
+                var newStatus = $(this).attr('id'); // Get the ID of the drop zone (e.g., 'inProgressColumn')
+                moveTask(taskId, newStatus); // Implement this function to update task status
+            });
+
+            // Function to move task to new status
+            function moveTask(taskId, newStatus) {
+
+                var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
+                $.ajax({
+                    url: 'move-tasks/' + taskId + '/',
+                    type: 'POST',
+                    data: {
+                        new_status: newStatus,
+                        id: taskId,
+                        csrfmiddlewaretoken: csrfToken,
+                     },
+                    success: function(response) {
+                        console.log('Task moved successfully:', response);
+                        location.reload();
+                    },
+                    error: function(error) {
+                        console.error('Error moving task:', error);
+                    }
+                });
+            }
+
+            // Adding task
+            $('#addTaskForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),
+                    data: formData,
+                    success: function(response) {
+                        console.log('Task added successfully:', response);
+                        $('#addTaskModal').modal('hide');
+                    },
+                    error: function(error) {
+                        console.error('Error adding task:', error);
+                    }
+                });
+            });
+
+            $('.view-task-btn').on('click', function() {
+                var taskId = $(this).data('id');
+
+                $.ajax({
+                    url: 'tasks/' + taskId + '/detail/',
+                    method: 'GET',
+                    success: function(data) {
+                        $('#taskTitle').text(data.title);
+                        $('#taskDescription').text(data.description);
+                        $('#taskStatus').text(data.status);
+                        $('#taskPriority').text(data.priority);
+                        $('#taskDueDate').text(data.due_date);
+                        $('#taskAssignedTo').text(data.assigned_to);
+                    },
+                    error: function(error) {
+                        console.error('Error fetching task data:', error);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
