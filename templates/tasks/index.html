@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasky Tasks</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        .status-in-progress {
+            background-color: #FFD700; /* Yellow */
+            color: #333; /* Dark text */
+        }
+        .status-completed {
+            background-color: #00FF00; /* Green */
+            color: #fff; /* White text */
+        }
+        .status-overdue {
+            background-color: #FF6347; /* Tomato */
+            color: #fff; /* White text */
+        }
+    </style>
+</head>
+<body class="bg-blue-100">
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Include the shared sidebar -->
+        {% include 'includes/sidebar.html' %}
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            <!-- Header -->
+            <header class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <input type="text" id="taskName" placeholder="Task Name" class="w-80 p-2 border rounded-md">
+                </div>
+                <div class="flex items-center">
+                    <!-- Button to trigger add task modal -->
+                    <button id="addTaskBtn" class="ml-6 p-2 bg-blue-500 text-white rounded-md">+ Add task</button>
+                </div>
+            </header>
+
+            <!-- Task Boards -->
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Task Cards will go here dynamically -->
+            </div>
+            <table class="table-auto w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-gray-300 px-4 py-2">Title</th>
+                        <th class="border border-gray-300 px-4 py-2">Status</th>
+                        <th class="border border-gray-300 px-4 py-2">Priority</th>
+                        <th class="border border-gray-300 px-4 py-2">Due Date</th>
+                        <th class="border border-gray-300 px-4 py-2">Assigned To</th>
+                        <th class="border border-gray-300 px-4 py-2">Actions</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">{{ task.title }}</td>
+                        <td class="border border-gray-300 px-4 py-2 {% if task.status == 'In Progress' %} status-in-progress
+                            {% elif task.status == 'Completed' %} status-completed
+                            {% elif task.status == 'Overdue' %} status-overdue
+                            {% endif %}">
+                            {{ task.status }}
+                        </td>
+                        <td class="border border-gray-300 px-4 py-2">{{ task.priority }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ task.due_date }}</td>
+                        <td class="border border-gray-300 px-4 py-2">{{ task.assigned_to }}</td>
+                        <td class="border border-gray-300 px-4 py-2">
+                            <!-- Update Task Button (Open Modal) -->
+                            <button class="p-2 bg-blue-500 text-white rounded-md" data-toggle="modal" data-target="#updateTaskModal{{ task.id }}">Update</button>
+
+                            <!-- Delete Task Button (Open Modal) -->
+                            <button class="p-2 bg-red-500 text-white rounded-md ml-2" data-toggle="modal" data-target="#deleteTaskModal{{ task.id }}">Delete</button>
+                        </td>
+                    </tr>
+
+                     <!-- Update Task Modal -->
+                    <div class="modal fade" id="updateTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="updateTaskModalLabel{{ task.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Update Task Form -->
+                                    <form method="POST" action="{% url 'update_task' task.id %}">
+                                        {% csrf_token %}
+                                        <!-- Form fields for updating task -->
+                                        <label for="updateTaskTitle">Title:</label>
+                                        <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
+
+                                        <label for="updateTaskDescription">Description:</label>
+                                        <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
+
+                                        <label for="updateTaskStatus">Status:</label>
+                                        <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
+                                            <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
+                                            <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
+                                            <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
+                                        </select>
+
+                                        <label for="updateTaskPriority">Priority:</label>
+                                        <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
+                                            <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
+                                            <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
+                                            <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
+                                        </select>
+
+                                        <label for="updateTaskDueDate">Due Date:</label>
+                                        <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
+
+                                        <label for="updateTaskCategory">Category:</label>
+                                        <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
+
+                                        <label for="updateTaskAssignedTo">Assigned To:</label>
+                                        <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
+                                            {% for user in users %}
+                                                <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <button type="submit" class="btn btn-primary">Update Task</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete Task Modal -->
+                    <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete task "{{ task.title }}"?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <!-- Delete Task Form -->
+                                    <form method="POST" action="{% url 'delete_task' task.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+            <!-- Add Task Modal -->
+            <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addTaskModalLabel">Add Task</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addTaskForm" method="POST" action="{% url 'create_task' %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="taskNameInput">Task Name</label>
+                                    <input type="text" class="form-control" id="taskNameInput" name="title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskDescriptionInput">Description</label>
+                                    <textarea class="form-control" id="taskDescriptionInput" name="description" rows="3" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskStatusInput">Status</label>
+                                    <select class="form-control" id="taskStatusInput" name="status" required>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Overdue">Overdue</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskPriorityInput">Priority</label>
+                                    <select class="form-control" id="taskPriorityInput" name="priority" required>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskDueDateInput">Due Date</label>
+                                    <input type="datetime-local" class="form-control" id="taskDueDateInput" name="due_date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskCategoryInput">Category</label>
+                                    <input type="text" class="form-control" id="taskCategoryInput" name="category" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskAssignedToInput">Assigned To</label>
+                                    <select class="form-control" id="taskAssignedToInput" name="assigned_to" required>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}">{{ user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-3">Add Task</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Your custom JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Show add task modal when button is clicked
+            $('#addTaskBtn').on('click', function() {
+                $('#addTaskModal').modal('show');
+            });
+
+            // Handle form submission for adding a task
+            $('#addTaskForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: $(this).attr('action'),
+                    data: formData,
+                    success: function(response) {
+                        console.log('Task added successfully:', response);
+                        // Optionally, update the UI to reflect the new task
+                        // Close the modal after task is added
+                        $('#addTaskModal').modal('hide');
+                    },
+                    error: function(error) {
+                        console.error('Error adding task:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
