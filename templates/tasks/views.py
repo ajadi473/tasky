@@ -3,13 +3,21 @@ from django.contrib.auth.decorators import login_required
 from dashboard.models import Task
 from .forms import TaskForm
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 
 # @login_required
 def task_list(request):
     tasks = Task.objects.all()
-    users = User.objects.all() 
-    
+    users = User.objects.all()
+    query = request.GET.get('q')
+
+    if query:
+        tasks = tasks.filter(
+            Q(title__icontains=query) |
+            Q(assigned_to__username=query) 
+        )
+
     context = {
         'tasks': tasks,
         'users': users, 
@@ -30,10 +38,10 @@ def create_task(request):
         if form.is_valid():
             task = form.save(commit=False)
             task.save()
-            return redirect('/welcome/tasks')
+            return redirect('tasks')
     else:
         form = TaskForm()
-    return render(request, '/welcome/tasks', {'form': form})
+    return render(request, 'tasks', {'form': form})
 
 
 # @login_required
