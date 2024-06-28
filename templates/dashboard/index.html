@@ -23,13 +23,53 @@
             <!-- Header -->
             <header class="flex items-center justify-between mb-6">
                 <div class="flex items-center">
-                    <input type="text" id="searchTasks"
-                    placeholder="Search tasks" class="w-80 p-2 border rounded-md">
+
+                    <form action="{% url 'dashboard' %}" method="get">
+                        <input type="text" name="query" placeholder="Search tasks" 
+                        class="w-80 p-2 border rounded-md" value="{{ query }}">
+                        <button type="submit" class="ml-n1 p-2 bg-blue-400 text-white rounded-md">Search</button>
+                    </form>
                 </div>
                 <div class="flex items-center">
-                    <button id="addTaskBtn" class="ml-6 p-2 bg-blue-500 text-white rounded-md">+ Add task</button>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 14l-3 6V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12l-3-6H3z"></path>
+                    </svg>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mx-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405C18.382 14.79 18 13.453 18 12V8a6 6 0 10-12 0v4c0 1.453-.382 2.79-1.595 3.595L3 17h5m7 0a3 3 0 01-6 0m6 0H9" />
+                    </svg>
+
+                    <img src="{% static 'img/avatar-1.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full">
+
                 </div>
             </header>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+
+                    <form class="flex" action="{% url 'dashboard' %}" method="get">
+                        <select name="priority" class="form-control">
+                            <option value="">-- Select Priority --</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                        <input class="form-control" type="date" name="due_date" value="{{ due_date|date:'Y-m-d' }}">
+                        <input class="form-control" type="text" name="category" value="{{ category }}" placeholder="Category...">
+                        <button type="submit" class="ml-n1 p-2 bg-blue-400 text-white rounded-md">Search</button>
+                    </form>
+                </div>
+                <div class="flex items-center">
+                    <div class="flex">
+                        <img src="{% static 'img/avatar-1.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full">
+                        <img src="{% static 'img/avatar-2.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                        <img src="{% static 'img/avatar-3.svg' %}" alt="Avatar" class="w-6 h-6 rounded-full -ml-2">
+                    </div>
+                    <span class="ml-n2">
+                        <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-500 text-white">+2</span>
+                    </span>
+                    <button id="addTaskBtn" class="ml-6 p-2 bg-blue-500 text-white rounded-md">+ Add task</button>
+                </div>
+            </div>
 
             <!-- Task Boards -->
             <div class="grid grid-cols-3 gap-6">
@@ -43,9 +83,9 @@
                     {% for task in in_progress_tasks %}
 
                         <div
-                        id="inProgressColumn"
-                         class="bg-white p-4 my-6 rounded-lg shadow task-card status-column cursor-pointer"
-                         draggable="true" data-task-id="{{ task.id }}">
+                            id="inProgressColumn"
+                            class="bg-white p-4 my-6 rounded-lg shadow task-card status-column cursor-pointer"
+                            draggable="true" data-task-id="{{ task.id }}">
                             <div class="bg-gray flex justify-between items-center mb-2">
                                 <span class="text-xs bg-red-100 text-red-500 py-1 px-2 rounded">{{ task.priority}}</span>
                                 <span class="text-xs bg-purple-100 text-purple-500 py-1 px-2 rounded">
@@ -84,111 +124,7 @@
                             </div>
                         </div>
 
-                        <!-- Update Task Modal -->
-                        <div class="modal fade" id="updateTaskModal{{ task.id }}"
-                            tabindex="-1" role="dialog"
-                            aria-labelledby="updateTaskModalLabel{{ task.id }}"
-                            aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Update Task Form -->
-                                        <form method="POST" action="{% url 'update_task' task.id %}" >
-                                            {% csrf_token %}
-                                            <!-- Form fields for updating task -->
-                                            <label for="updateTaskTitle">Title:</label>
-                                            <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskDescription">Description:</label>
-                                            <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
-
-                                            <label for="updateTaskStatus">Status:</label>
-                                            <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
-                                                <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
-                                                <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
-                                                <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
-                                            </select>
-
-                                            <label for="updateTaskPriority">Priority:</label>
-                                            <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
-                                                <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
-                                                <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
-                                                <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
-                                            </select>
-
-                                            <label for="updateTaskDueDate">Due Date:</label>
-                                            <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskCategory">Category:</label>
-                                            <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskAssignedTo">Assigned To:</label>
-                                            <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
-                                                {% for user in users %}
-                                                    <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
-                                                {% endfor %}
-                                            </select>
-
-                                            <button type="submit" class="btn btn-primary">Update Task</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Delete Task Modal -->
-                        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Are you sure you want to delete task "{{ task.title }}"?</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <!-- Delete Task Form -->
-                                        <form method="POST"  action="{% url 'delete_task' task.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- View Task Modal -->
-                        <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Task information will be populated here -->
-                                        <p><strong>Title:</strong> <span id="taskTitle"></span></p>
-                                        <p><strong>Description:</strong> <span id="taskDescription"></span></p>
-                                        <p><strong>Status:</strong> <span id="taskStatus"></span></p>
-                                        <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
-                                        <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
-                                        <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'includes/task_column_modal.html' %}
 
                     {% endfor %}
                 </div>
@@ -243,111 +179,7 @@
                             </div>
                         </div>
 
-                        <!-- Update Task Modal -->
-                        <div class="modal fade" id="updateTaskModal{{ task.id }}"
-                            tabindex="-1" role="dialog"
-                            aria-labelledby="updateTaskModalLabel{{ task.id }}"
-                            aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Update Task Form -->
-                                        <form method="POST" action="{% url 'update_task' task.id %}" >
-                                            {% csrf_token %}
-                                            <!-- Form fields for updating task -->
-                                            <label for="updateTaskTitle">Title:</label>
-                                            <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskDescription">Description:</label>
-                                            <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
-
-                                            <label for="updateTaskStatus">Status:</label>
-                                            <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
-                                                <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
-                                                <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
-                                                <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
-                                            </select>
-
-                                            <label for="updateTaskPriority">Priority:</label>
-                                            <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
-                                                <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
-                                                <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
-                                                <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
-                                            </select>
-
-                                            <label for="updateTaskDueDate">Due Date:</label>
-                                            <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskCategory">Category:</label>
-                                            <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskAssignedTo">Assigned To:</label>
-                                            <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
-                                                {% for user in users %}
-                                                    <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
-                                                {% endfor %}
-                                            </select>
-
-                                            <button type="submit" class="btn btn-primary">Update Task</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Delete Task Modal -->
-                        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Are you sure you want to delete task "{{ task.title }}"?</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <!-- Delete Task Form -->
-                                        <form method="POST"  action="{% url 'delete_task' task.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- View Task Modal -->
-                        <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Task information will be populated here -->
-                                        <p><strong>Title:</strong> <span id="taskTitle"></span></p>
-                                        <p><strong>Description:</strong> <span id="taskDescription"></span></p>
-                                        <p><strong>Status:</strong> <span id="taskStatus"></span></p>
-                                        <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
-                                        <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
-                                        <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'includes/task_column_modal.html' %}
 
                     {% endfor %}
                 </div>
@@ -402,111 +234,7 @@
                             </div>
                         </div>
 
-                        <!-- Update  Modal -->
-                        <div class="modal fade" id="updateTaskModal{{ task.id }}"
-                            tabindex="-1" role="dialog"
-                            aria-labelledby="updateTaskModalLabel{{ task.id }}"
-                            aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Update Task Form -->
-                                        <form method="POST" action="{% url 'update_task' task.id %}" >
-                                            {% csrf_token %}
-                                            <!-- Form fields for updating task -->
-                                            <label for="updateTaskTitle">Title:</label>
-                                            <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskDescription">Description:</label>
-                                            <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
-
-                                            <label for="updateTaskStatus">Status:</label>
-                                            <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
-                                                <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
-                                                <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
-                                                <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
-                                            </select>
-
-                                            <label for="updateTaskPriority">Priority:</label>
-                                            <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
-                                                <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
-                                                <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
-                                                <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
-                                            </select>
-
-                                            <label for="updateTaskDueDate">Due Date:</label>
-                                            <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskCategory">Category:</label>
-                                            <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
-
-                                            <label for="updateTaskAssignedTo">Assigned To:</label>
-                                            <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
-                                                {% for user in users %}
-                                                    <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
-                                                {% endfor %}
-                                            </select>
-
-                                            <button type="submit" class="btn btn-primary">Update Task</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Delete Task Modal -->
-                        <div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Are you sure you want to delete task "{{ task.title }}"?</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <!-- Delete Task Form -->
-                                        <form method="POST"  action="{% url 'delete_task' task.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- View Task Modal -->
-                        <div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Task information will be populated here -->
-                                        <p><strong>Title:</strong> <span id="taskTitle"></span></p>
-                                        <p><strong>Description:</strong> <span id="taskDescription"></span></p>
-                                        <p><strong>Status:</strong> <span id="taskStatus"></span></p>
-                                        <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
-                                        <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
-                                        <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'includes/task_column_modal.html' %}
 
                     {% endfor %}
                 </div>
@@ -591,7 +319,6 @@
                 event.originalEvent.dataTransfer.setData('text/plain', $(this).data('task-id'));
             });
 
-            // Enable droppability for status columns
             $('.status-column').on('dragover', function(event) {
                 event.preventDefault();
             });
@@ -635,6 +362,7 @@
                     success: function(response) {
                         console.log('Task added successfully:', response);
                         $('#addTaskModal').modal('hide');
+                        location.reload();
                     },
                     error: function(error) {
                         console.error('Error adding task:', error);
@@ -658,6 +386,24 @@
                     },
                     error: function(error) {
                         console.error('Error fetching task data:', error);
+                    }
+                });
+            });
+
+            $('#searchTasks').on('input', function() {
+                var query = $(this).val().trim();
+                $.ajax({
+                    url: '{% url 'search_tasks' %}',
+                    method: 'GET',
+                    data: {
+                        'query': query
+                    },
+                    success: function(data) {
+                        // Replace the task boards with the updated data
+                        console.log(data)
+                    },
+                    error: function(error) {
+                        console.error('Error searching tasks:', error);
                     }
                 });
             });

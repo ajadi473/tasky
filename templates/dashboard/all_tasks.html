@@ -1,0 +1,44 @@
+<!-- dashboard/all_tasks.html -->
+<div class="grid grid-cols-3 gap-6">
+    <!-- In Progress Column -->
+    <div>
+        <h2 class="text-lg font-semibold mb-4">In Progress ({{ in_progress_tasks.count }})</h2>
+        {% for task in in_progress_tasks %}
+            <div class="task-card">
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.description }}</p>
+                <!-- Additional task details -->
+            </div>
+        {% empty %}
+            <p>No tasks in progress.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Completed Column -->
+    <div>
+        <h2 class="text-lg font-semibold mb-4">Completed ({{ completed_tasks.count }})</h2>
+        {% for task in completed_tasks %}
+            <div class="task-card">
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.description }}</p>
+                <!-- Additional task details -->
+            </div>
+        {% empty %}
+            <p>No completed tasks.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Overdue Column -->
+    <div>
+        <h2 class="text-lg font-semibold mb-4">Overdue ({{ overdue_tasks.count }})</h2>
+        {% for task in overdue_tasks %}
+            <div class="task-card">
+                <h3>{{ task.title }}</h3>
+                <p>{{ task.description }}</p>
+                <!-- Additional task details -->
+            </div>
+        {% empty %}
+            <p>No overdue tasks.</p>
+        {% endfor %}
+    </div>
+</div>

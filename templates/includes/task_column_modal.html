@@ -1,0 +1,107 @@
+{% load static %}
+
+<!-- Update Task Modal -->
+<div class="modal fade" id="updateTaskModal{{ task.id }}"
+    tabindex="-1" role="dialog"
+    aria-labelledby="updateTaskModalLabel{{ task.id }}"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateTaskModalLabel{{ task.id }}">Update Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Update Task Form -->
+                <form method="POST" action="{% url 'update_task' task.id %}" >
+                    {% csrf_token %}
+                    <!-- Form fields for updating task -->
+                    <label for="updateTaskTitle">Title:</label>
+                    <input type="text" id="updateTaskTitle" name="title" value="{{ task.title }}" class="form-control mb-2" required>
+
+                    <label for="updateTaskDescription">Description:</label>
+                    <textarea id="updateTaskDescription" name="description" class="form-control mb-2" required>{{ task.description }}</textarea>
+
+                    <label for="updateTaskStatus">Status:</label>
+                    <select id="updateTaskStatus" name="status" class="form-control mb-2" required>
+                        <option value="In Progress" {% if task.status == 'In Progress' %} selected {% endif %}>In Progress</option>
+                        <option value="Completed" {% if task.status == 'Completed' %} selected {% endif %}>Completed</option>
+                        <option value="Overdue" {% if task.status == 'Overdue' %} selected {% endif %}>Overdue</option>
+                    </select>
+
+                    <label for="updateTaskPriority">Priority:</label>
+                    <select id="updateTaskPriority" name="priority" class="form-control mb-2" required>
+                        <option value="Low" {% if task.priority == 'Low' %} selected {% endif %}>Low</option>
+                        <option value="Medium" {% if task.priority == 'Medium' %} selected {% endif %}>Medium</option>
+                        <option value="High" {% if task.priority == 'High' %} selected {% endif %}>High</option>
+                    </select>
+
+                    <label for="updateTaskDueDate">Due Date:</label>
+                    <input type="datetime-local" id="updateTaskDueDate" name="due_date" value="{{ task.due_date|date:'Y-m-d\TH:i' }}" class="form-control mb-2" required>
+
+                    <label for="updateTaskCategory">Category:</label>
+                    <input type="text" id="updateTaskCategory" name="category" value="{{ task.category }}" class="form-control mb-2" required>
+
+                    <label for="updateTaskAssignedTo">Assigned To:</label>
+                    <select id="updateTaskAssignedTo" name="assigned_to" class="form-control mb-2" required>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {% if task.assigned_to.id == user.id %} selected {% endif %}>{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="btn btn-primary">Update Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Task Modal -->
+<div class="modal fade" id="deleteTaskModal{{ task.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModalLabel{{ task.id }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTaskModalLabel{{ task.id }}">Delete Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete task "{{ task.title }}"?</p>
+            </div>
+            <div class="modal-footer">
+                <!-- Delete Task Form -->
+                <form method="POST"  action="{% url 'delete_task' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Task Modal -->
+<div class="modal fade" id="viewTaskModal" tabindex="-1" role="dialog" aria-labelledby="viewTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewTaskModalLabel">View Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Task information will be populated here -->
+                <p><strong>Title:</strong> <span id="taskTitle"></span></p>
+                <p><strong>Description:</strong> <span id="taskDescription"></span></p>
+                <p><strong>Status:</strong> <span id="taskStatus"></span></p>
+                <p><strong>Priority:</strong> <span id="taskPriority"></span></p>
+                <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
+                <p><strong>Assigned To:</strong> <span id="taskAssignedTo"></span></p>
+            </div>
+        </div>
+    </div>
+</div>

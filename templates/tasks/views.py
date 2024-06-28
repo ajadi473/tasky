@@ -81,7 +81,7 @@ def delete_task(request, pk):
 # @require_http_methods(['PATCH'])
 def move_task(request, pk):
     task = get_object_or_404(Task, id=pk)
-    
+
     if request.method == 'POST':
         updated_status_column = request.POST.get('new_status')
 
