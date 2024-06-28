@@ -20,6 +20,7 @@ Tasky is a task management dashboard built with Django, using Tailwind CSS , Jqu
 ### 1. Clone the Repository
 
 git clone https://github.com/ajadi473/tasky.git
+
 cd tasky
 
 ### 2. Create virtualenv
