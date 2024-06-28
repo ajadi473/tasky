@@ -11,7 +11,7 @@ from templates.tasks.views import (task_list,
                                    )
 
 urlpatterns = [
-    path('dashboard', views.index, name='dashboard'),
+    path('', views.index, name='dashboard'),
     path('tasks', task_list, name='tasks'),
     path('create/', create_task, name='create_task'),
     path('tasks/update/<int:pk>/', update_task, name='update_task'),

@@ -3,8 +3,10 @@ from dashboard.models import Task
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from datetime import datetime
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def index(request):
     # Fetch tasks categorized by status
     in_progress_tasks = Task.objects.filter(status='In Progress')

@@ -9,7 +9,7 @@ from django.db.models import Q
 import json
 
 
-# @login_required
+@login_required
 def task_list(request):
     tasks = Task.objects.all()
     users = User.objects.all()
@@ -28,10 +28,10 @@ def task_list(request):
     return render(request, 'tasks/index.html', context)
 
 
-# @login_required
+@login_required
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
-    print(task)
+
     data = {
         'title': task.title,
         'description': task.description,
@@ -43,7 +43,7 @@ def task_detail(request, pk):
     return JsonResponse(data)
 
 
-# @login_required
+@login_required
 def create_task(request):
     if request.method == 'POST':
         form = TaskForm(request.POST)
@@ -56,7 +56,7 @@ def create_task(request):
     return render(request, 'tasks', {'form': form})
 
 
-# @login_required
+@login_required
 def update_task(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if request.method == 'POST':
@@ -69,7 +69,7 @@ def update_task(request, pk):
     return render(request, 'tasks/task_form.html', {'form': form})
 
 
-# @login_required
+@login_required
 def delete_task(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if request.method == 'POST':
