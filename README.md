@@ -13,7 +13,7 @@ Tasky is a task management dashboard built with Django, using Tailwind CSS , Jqu
 ## Prerequisites
 
 - Python 3.x
-- Django 3.x
+- Django 5.x
 
 ## Setup Instructions
 
@@ -26,6 +26,7 @@ cd tasky
 ### 2. Create virtualenv
 
 python -m venv venv
+
 source venv/bin/activate
 
 ### 3. Install Dependencies
