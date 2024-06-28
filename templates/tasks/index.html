@@ -233,7 +233,6 @@
 
     <script>
         $(document).ready(function() {
-            // Show add task modal when button is clicked
             $('#addTaskBtn').on('click', function() {
                 $('#addTaskModal').modal('show');
             });
@@ -248,8 +247,6 @@
                     data: formData,
                     success: function(response) {
                         console.log('Task added successfully:', response);
-                        // Optionally, update the UI to reflect the new task
-                        // Close the modal after task is added
                         $('#addTaskModal').modal('hide');
                     },
                     error: function(error) {

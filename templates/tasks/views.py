@@ -66,7 +66,7 @@ def update_task(request, pk):
             return redirect('tasks')
     else:
         form = TaskForm(instance=task)
-    return render(request, 'tasks/task_form.html', {'form': form})
+    return render(request, 'tasks/index.html', {'form': form})
 
 
 @login_required
